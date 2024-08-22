@@ -26,17 +26,17 @@ public struct TokenConfiguration: Configuration {
         return previewCustomHeaders
     }
 
-    public init(_ token: String? = nil, url: String = githubBaseURL, previewHeaders: [PreviewHeader] = []) {
+    public init(_ token: String? = nil, url: String = githubBaseURL, headers: [CustomHeader] = []) {
         apiEndpoint = url
         accessToken = token?.data(using: .utf8)!.base64EncodedString()
-        previewCustomHeaders = previewHeaders.map { $0.header }
+        previewCustomHeaders = headers.map { $0.header }
     }
 
-    public init(bearerToken: String, url: String = githubBaseURL, previewHeaders: [PreviewHeader] = []) {
+    public init(bearerToken: String, url: String = githubBaseURL, headers: [CustomHeader] = []) {
         apiEndpoint = url
         authorizationHeader = "Bearer"
         accessToken = bearerToken
-        previewCustomHeaders = previewHeaders.map { $0.header }
+        previewCustomHeaders = headers.map { $0.header }
     }
 }
 
@@ -66,7 +66,7 @@ public struct OAuthConfiguration: Configuration {
                 token: String,
                 secret: String,
                 scopes: [String],
-                previewHeaders: [PreviewHeader] = [],
+                previewHeaders: [CustomHeader] = [],
                 session: RequestKitURLSession = URLSession.shared) {
         apiEndpoint = url
         webEndpoint = webURL
