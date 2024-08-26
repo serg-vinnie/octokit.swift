@@ -265,25 +265,6 @@ public extension Octokit {
             }
         }
     }
-    
-    @discardableResult
-    func createRepo(params: NewRepoJson, responseCode: @escaping (Result<Int, Error>)->Void) -> URLSessionDataTaskProtocol? {
-        let router = RepositoryRouter.createRepository(configuration, params)
-        guard let request = router.request() else { return nil }
-        
-        let task = session.dataTask(with: request) { data, response, error in
-            if let response = response as? HTTPURLResponse {
-                responseCode(.success(response.statusCode))
-            } else if let error = error {
-                responseCode(.failure(error))
-            } else {
-                let error = NSError(domain: self.configuration.errorDomain, code: -1, userInfo: nil)
-                responseCode(.failure(error))
-            }
-        }
-        
-        return task
-    }
 
     #if compiler(>=5.5.2) && canImport(_Concurrency)
     /**
@@ -342,22 +323,11 @@ public extension Octokit {
     #endif
 }
 
-public extension Octokit {
-    struct NewRepoJson {
-        public let name : String
-        public let `private` : Bool
-        
-        public init(name: String, `private`: Bool) {
-            self.name = name
-            self.private = `private`
-        }
-    }
-}
+
 
 // MARK: Router
 
 enum RepositoryRouter: Router {
-    case createRepository(Configuration,Octokit.NewRepoJson)
     case readRepositories(Configuration, String, String, String)
     case readAuthenticatedRepositories(Configuration, String, String)
     case readRepository(Configuration, String, String)
@@ -369,13 +339,11 @@ enum RepositoryRouter: Router {
         case let .readAuthenticatedRepositories(config, _, _):  return config
         case let .readRepository(config, _, _):                 return config
         case let .getRepositoryContent(config, _, _, _, _):     return config
-        case let .createRepository(config, _):                  return config
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .createRepository(_, _): return .POST
         default:                      return .GET
         }
     }
@@ -397,8 +365,6 @@ enum RepositoryRouter: Router {
                 return ["ref": ref]
             }
             return [:]
-        case .createRepository(_, _):
-            return [:]
         }
     }
 
@@ -407,8 +373,6 @@ enum RepositoryRouter: Router {
         case let .readRepositories(_, owner, _, _):
             return "users/\(owner)/repos"
         case .readAuthenticatedRepositories:
-            return "user/repos"
-        case .createRepository(_, _):
             return "user/repos"
         case let .readRepository(_, owner, name):
             return "repos/\(owner)/\(name)"
